@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pune Plate Agent</title><link rel="stylesheet" href="style.css"></head><body>
+<header><h1>Pune Plate Agent</h1><p>Tell it a few Pune places you love. It reads the Qloo taste graph and plans where to eat next.</p></header>
+<main><form id="f">
+<label>Places you love in Pune (comma separated)<input id="loves" value="Vaishali, Kayani Bakery" required></label>
+<label>Area<input id="area" value="Koregaon Park"></label>
+<label>Craving (optional)<input id="want" placeholder="dosa, biryani, coffee"></label>
+<div class="row"><label>Diet<select id="diet"><option value="any">Anything</option><option value="veg">Vegetarian</option><option value="nonveg">Non-veg</option></select></label>
+<label>Budget<select id="budget"><option value="any">Any</option><option value="low">Easy on the wallet</option></select></label></div>
+<button>Plan my food crawl</button></form>
+<form id="af" class="agentbox"><label>Or just describe what you want (AI agent)<textarea id="atext" rows="3" maxlength="500" placeholder="Vegetarian dosa spot near Deccan, something like Vaishali, easy on the wallet"></textarea></label><button>Ask the AI agent</button></form>
+<div id="aout" aria-live="polite"></div>
+<div id="out" aria-live="polite"></div></main>
+<footer>Powered by Qloo Taste AI. Free review build. Tags and cost bands come from Qloo data and can be wrong or out of date: confirm diet, allergens and prices with the restaurant.</footer>
+<script src="app.js"></script></body></html>
