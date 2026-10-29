@@ -1,0 +1,6 @@
+# Public review deploy config. Secret QLOO_API_KEY is set with `wrangler secret put`, never committed.
+name = "pune-plate-agent"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+[ai]
+binding = "AI"
