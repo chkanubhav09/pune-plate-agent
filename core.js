@@ -35,9 +35,10 @@ export function createCore(env) {
     const anchors = _ids ? _ids.map(id => ({ id, name: id })) : await resolveAnchors(loves);
     if (!anchors.length) return { error: 'None of those places were found in Pune. Try names like Vaishali, Kayani Bakery.' };
     const [lat, lon] = areaPoint(area), loc = /pune/i.test(area) ? area : area + ', Pune';
-    const params = { 'filter.type': 'urn:entity:place', 'filter.location': `POINT(${lon} ${lat})`, 'filter.location.radius': 2500, 'signal.interests.entities': anchors.map(a => a.id).join(','), take: 30 };
+    let radius = 2500;
+    const params = { 'filter.type': 'urn:entity:place', 'filter.location': `POINT(${lon} ${lat})`, 'filter.location.radius': radius, 'signal.interests.entities': anchors.map(a => a.id).join(','), take: 30 };
     let ents = (await q('/v2/insights', params)).results?.entities || [];
-    if (ents.length < 6) { params['filter.location.radius'] = 6000; ents = (await q('/v2/insights', params)).results?.entities || []; }
+    if (ents.length < 6) { radius = 6000; params['filter.location.radius'] = radius; ents = (await q('/v2/insights', params)).results?.entities || []; }
     const wantRe = want.trim() ? new RegExp(want.trim().split(/[\s,]+/).filter(Boolean).map(w => w.replace(/[^\w]/g, '')).filter(Boolean).join('|'), 'i') : null;
     const anchorIds = new Set(anchors.map(a => a.id));
     const picks = ents.filter(e => !anchorIds.has(e.entity_id) && !droppable(e)).map((e, i) => {
@@ -58,9 +59,12 @@ export function createCore(env) {
         map: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(e.name + ' ' + (e.properties?.address || '')) };
     }).sort((a, b) => (b.query_fit === true) - (a.query_fit === true) || b.score - a.score).slice(0, 8);
     const fitCount = wantRe ? picks.filter(p => p.query_fit).length : null;
-    let note = 'Ranked by Qloo taste-graph affinity to your anchors, then re-ranked for your area, diet and craving. Lodging venues are excluded unless Qloo data marks them food-serving. This is the rule-based planner, not the AI agent.';
+    const reach = radius === 6000
+      ? `Qloo taste search within about 6km of ${loc} - widened from 2.5km because Qloo returned few matches nearby.`
+      : `Qloo taste search within about 2.5km of ${loc}.`;
+    let note = reach + ' Ranked by taste-graph affinity to your anchors, not by distance: picks may sit anywhere in that radius, including outside the named neighbourhood. Diet and craving adjust the ranking. Lodging venues are excluded unless Qloo data marks them food-serving. This is the rule-based planner, not the AI agent.';
     if (wantRe) note += fitCount ? ' ' + fitCount + ' pick(s) have Qloo data mentioning "' + want.trim() + '".' : ' No picked place has Qloo data mentioning "' + want.trim() + '" - shown as taste matches only, not confirmed to serve it.';
-    return { anchors, area: loc, diet, picks, crawl: picks.slice(0, 3).map((p, i) => ({ slot: SLOTS[i], ...p })), note };
+    return { anchors, area: loc, radius_m: radius, diet, picks, crawl: picks.slice(0, 3).map((p, i) => ({ slot: SLOTS[i], ...p })), note };
   }
   const impl = {
     find_place: async ({ name }) => (await resolveAnchors([name]))[0] || { error: 'not found in Pune' },
